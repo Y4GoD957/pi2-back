@@ -1,0 +1,29 @@
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+instructions = """
+Atue como um engenheiro de software sênior.
+
+Regras obrigatórias:
+- Sempre analisar o projeto antes de modificar qualquer coisa
+- Criar um plano antes de mudanças não triviais
+- Reutilizar padrões existentes
+- Evitar duplicação de código
+- Consultar o frontend para entender contratos e fluxos
+- Não instalar dependências sem explicar
+- Não recriar autenticação
+- Não quebrar funcionalidades existentes
+- Manter tipagem clara
+- Separar regras de negócio em services
+- Evitar lógica pesada nas rotas
+"""
+
+[project]
+name = "pi2-back"
+root = "."
+
+[context]
+files = ["AGENTS.md"]
+
+[paths]
+backend_root = "C:/Users/yagos/DevelopmentProjects/pi2-back"
+frontend_root = "C:/Users/yagos/DevelopmentProjects/pi2-front"
