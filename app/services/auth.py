@@ -115,7 +115,7 @@ class AuthService:
         }
 
         try:
-            async with AsyncClient(timeout=15.0) as client:
+            async with AsyncClient(timeout=15.0, trust_env=False) as client:
                 response = await client.post(
                     url,
                     headers=headers,
@@ -155,7 +155,7 @@ class AuthService:
         }
 
         try:
-            async with AsyncClient(timeout=15.0) as client:
+            async with AsyncClient(timeout=15.0, trust_env=False) as client:
                 response = await client.post(
                     url,
                     headers=headers,
@@ -187,16 +187,17 @@ class AuthService:
 
         data = response.json()
         auth_user = data.get("user") or {}
-        await self._ensure_local_user(
-            auth_user=auth_user,
-            default_email=str(payload.email),
-            default_name=payload.name,
-            default_cpf=payload.cpf,
-            default_birth_date=payload.birthDate,
-            default_phone=payload.phone,
-            default_address=payload.address,
-            default_profile_id=payload.profileId,
-        )
+        if auth_user.get("id"):
+            await self._ensure_local_user(
+                auth_user=auth_user,
+                default_email=str(payload.email),
+                default_name=payload.name,
+                default_cpf=payload.cpf,
+                default_birth_date=payload.birthDate,
+                default_phone=payload.phone,
+                default_address=payload.address,
+                default_profile_id=payload.profileId,
+            )
 
         return RegisterResponse(
             message=(

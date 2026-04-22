@@ -51,7 +51,7 @@ class UserService:
         }
 
         try:
-            async with AsyncClient(timeout=15.0) as client:
+            async with AsyncClient(timeout=15.0, trust_env=False) as client:
                 response = await client.put(url, headers=headers, json={"email": email})
                 response.raise_for_status()
         except HTTPStatusError as exc:

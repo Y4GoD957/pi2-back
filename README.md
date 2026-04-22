@@ -36,6 +36,7 @@ Requisitos:
 - Python 3.13 ou superior
 - acesso ao PostgreSQL configurado em `DATABASE_URL`
 - arquivo `.env` preenchido
+- projeto Supabase configurado para Auth
 
 Passo a passo no Windows PowerShell:
 
@@ -48,21 +49,30 @@ Passo a passo no Windows PowerShell:
    `pip install -e .`
 4. Crie o arquivo de ambiente:
    `Copy-Item .env.example .env`
-5. Ajuste as variaveis do `.env`, principalmente `DATABASE_URL`.
+5. Ajuste as variaveis do `.env`.
 6. Inicie o servidor:
    `uvicorn app.main:app --reload`
+
+Variaveis principais:
+
+- `DATABASE_URL`: conexao PostgreSQL usada pelo backend
+- `SUPABASE_URL`: URL do projeto Supabase
+- `SUPABASE_ANON_KEY`: chave usada nos fluxos publicos de auth
+- `SUPABASE_SECRET_KEY`: chave administrativa usada pelo backend
+- `SUPABASE_JWT_SECRET`: segredo usado para validar tokens do Supabase
 
 Observacoes:
 
 - O comando `.\.venv\Scripts\Activate.ps1` so funciona depois que a pasta `.venv` for criada.
 - Se voce ja tiver as dependencias instaladas no Python global, tambem pode iniciar direto com `uvicorn app.main:app --reload`, sem ativar ambiente virtual.
-- Para operacoes administrativas no Supabase Auth, configure `SUPABASE_SECRET_KEY` no backend.
+- O fluxo de cadastro/login depende do Supabase Auth e da tabela `usuario` no banco configurado em `DATABASE_URL`.
 
 Se tudo estiver correto, a API ficara disponivel em `http://127.0.0.1:8000`.
 
 Teste rapido:
 
 - `GET http://127.0.0.1:8000/health`
+- `GET http://127.0.0.1:8000/api/v1/profiles`
 
 ## Compatibilidade com o frontend
 
