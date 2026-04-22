@@ -24,6 +24,20 @@ class UserRepository:
         result = await self.session.execute(statement)
         return list(result.scalars().all())
 
+    async def get_profile_by_id(self, profile_id: int) -> Perfil | None:
+        statement = select(Perfil).where(Perfil.id_perfil == profile_id)
+        result = await self.session.execute(statement)
+        return result.scalar_one_or_none()
+
+    async def create(self, user: Usuario) -> Usuario:
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user, attribute_names=["perfil"])
+        return user
+
+    async def rollback(self) -> None:
+        await self.session.rollback()
+
     async def update(self, user: Usuario) -> Usuario:
         self.session.add(user)
         await self.session.commit()

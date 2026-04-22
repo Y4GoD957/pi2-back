@@ -56,6 +56,7 @@ Observacoes:
 
 - O comando `.\.venv\Scripts\Activate.ps1` so funciona depois que a pasta `.venv` for criada.
 - Se voce ja tiver as dependencias instaladas no Python global, tambem pode iniciar direto com `uvicorn app.main:app --reload`, sem ativar ambiente virtual.
+- Para operacoes administrativas no Supabase Auth, configure `SUPABASE_SECRET_KEY` no backend.
 
 Se tudo estiver correto, a API ficara disponivel em `http://127.0.0.1:8000`.
 

@@ -36,16 +36,17 @@ class UserService:
         return await self.user_repository.update(current_user)
 
     async def _sync_supabase_email(self, auth_user_id: str, email: str) -> None:
-        if not self.settings.supabase_url or not self.settings.supabase_service_role_key:
+        admin_key = self.settings.supabase_secret_key
+        if not self.settings.supabase_url or not admin_key:
             raise ApiError(
-                "Alteracao de e-mail exige SUPABASE_SERVICE_ROLE_KEY configurada no backend.",
+                "Alteracao de e-mail exige SUPABASE_SECRET_KEY configurada no backend.",
                 500,
             )
 
         url = f"{self.settings.supabase_url}/auth/v1/admin/users/{auth_user_id}"
         headers = {
-            "apikey": self.settings.supabase_service_role_key,
-            "Authorization": f"Bearer {self.settings.supabase_service_role_key}",
+            "apikey": admin_key,
+            "Authorization": f"Bearer {admin_key}",
             "Content-Type": "application/json",
         }
 

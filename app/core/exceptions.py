@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class ApiError(Exception):
@@ -23,4 +24,18 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={"detail": exc.errors()},
+        )
+
+    @app.exception_handler(SQLAlchemyError)
+    async def handle_database_error(_: Request, __: SQLAlchemyError) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": "Banco de dados indisponivel ou inacessivel."},
+        )
+
+    @app.exception_handler(Exception)
+    async def handle_unexpected_error(_: Request, __: Exception) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Erro interno do servidor."},
         )
