@@ -6,12 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
+from app.db.bootstrap import ensure_public_policy_tables
+from app.db.session import engine
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    await ensure_public_policy_tables(engine)
     yield
 
 

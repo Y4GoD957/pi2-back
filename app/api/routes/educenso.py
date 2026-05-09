@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -13,8 +13,16 @@ from app.schemas.educenso import (
     ReportFormOptions,
     ReportListItem,
 )
-from app.schemas.ibge import AdministrativeRegion
+from app.schemas.ibge import AdministrativeRegion, DfMetadataResponse
+from app.schemas.public_data import (
+    DataSourcesResponse,
+    DfChartsResponse,
+    DfHeatmapResponse,
+    DfIndicatorsResponse,
+    DfSummaryResponse,
+)
 from app.services.educenso import EducensoService
+from app.services.educenso_public_data import EducensoPublicDataService
 
 router = APIRouter(prefix="/educenso", tags=["educenso"])
 
@@ -80,8 +88,8 @@ async def create_report(
     return await service.create_user_report(current_user.id_usuario, payload)
 
 
-@router.get("/df/heatmap", response_model=DfHeatMapData)
-async def get_df_heatmap(
+@router.get("/df/heatmap-legacy", response_model=DfHeatMapData)
+async def get_df_heatmap_legacy(
     session: DbSession,
     filters: Annotated[EducensoAnalysisFilters, Depends(build_filters)],
 ) -> DfHeatMapData:
@@ -89,7 +97,81 @@ async def get_df_heatmap(
     return await service.fetch_df_heatmap(filters)
 
 
+@router.get("/df/geojson")
+async def get_df_geojson() -> Any:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_geojson()
+
+
 @router.get("/df/regions", response_model=list[AdministrativeRegion])
-async def get_df_regions(session: DbSession) -> list[AdministrativeRegion]:
-    service = EducensoService(session)
+async def get_df_regions() -> list[AdministrativeRegion]:
+    service = EducensoPublicDataService()
     return await service.fetch_df_regions()
+
+
+@router.get("/data-sources", response_model=DataSourcesResponse)
+async def get_data_sources() -> DataSourcesResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_data_sources()
+
+
+@router.get("/df/metadata", response_model=DfMetadataResponse)
+async def get_df_metadata() -> DfMetadataResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_metadata()
+
+
+@router.get("/df/indicators", response_model=DfIndicatorsResponse)
+async def get_df_indicators(
+    year: int | None = Query(default=None),
+    theme: str | None = Query(default=None),
+    indicator: str | None = Query(default=None),
+    source: str | None = Query(default=None),
+) -> DfIndicatorsResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_indicators(
+        year=year,
+        theme=theme,
+        indicator=indicator,
+        source=source,
+    )
+
+
+@router.get("/df/heatmap", response_model=DfHeatmapResponse)
+async def get_df_heatmap(
+    year: int | None = Query(default=None),
+    indicator: str | None = Query(default=None),
+    source: str | None = Query(default=None),
+) -> DfHeatmapResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_heatmap(
+        year=year,
+        indicator=indicator,
+        source=source,
+    )
+
+
+@router.get("/df/charts", response_model=DfChartsResponse)
+async def get_df_charts(
+    year: int | None = Query(default=None),
+    indicator: str | None = Query(default=None),
+    source: str | None = Query(default=None),
+) -> DfChartsResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_charts(
+        year=year,
+        indicator=indicator,
+        source=source,
+    )
+
+
+@router.get("/df/summary", response_model=DfSummaryResponse)
+async def get_df_summary(
+    year: int | None = Query(default=None),
+    source: str | None = Query(default=None),
+) -> DfSummaryResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_summary(
+        year=year,
+        source=source,
+    )

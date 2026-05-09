@@ -1,12 +1,17 @@
 import json
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+ENV_FILE = BACKEND_ROOT / ".env"
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     app_name: str = "EduCenso Analytics API"
     app_env: str = "development"
@@ -22,6 +27,12 @@ class Settings(BaseSettings):
     supabase_anon_key: str | None = None
     supabase_secret_key: str | None = None
     supabase_jwt_secret: str | None = None
+    supabase_jwt_public_key_jwk: str | None = None
+    sidra_base_url: str = "https://servicodados.ibge.gov.br/api/v3"
+    ibge_localidades_base_url: str = "https://servicodados.ibge.gov.br/api/v1/localidades"
+    ibge_malhas_base_url: str = "https://servicodados.ibge.gov.br/api/v2/malhas"
+    inep_base_url: str = "https://www.gov.br/inep/pt-br"
+    public_data_timeout_seconds: float = 20.0
     local_dev_cors_origins: list[str] = Field(
         default_factory=lambda: [
             "http://localhost:5173",

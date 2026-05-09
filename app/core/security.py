@@ -1,3 +1,5 @@
+import json
+
 from fastapi import Depends, Header, status
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,11 +34,18 @@ async def get_current_user(
 
     token = _extract_bearer_token(authorization)
 
+    if not settings.supabase_jwt_public_key_jwk:
+        raise ApiError(
+            "SUPABASE_JWT_PUBLIC_KEY_JWK nao configurado para validar tokens.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
     try:
+        public_key = json.loads(settings.supabase_jwt_public_key_jwk)
         payload = jwt.decode(
             token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
+            public_key,
+            algorithms=["ES256"],
             audience="authenticated",
             options={"verify_aud": False},
         )

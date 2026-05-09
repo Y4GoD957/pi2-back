@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.public_data import DataStatus, ReliabilityLevel, SeverityLevel, TrendDirection
+
 
 class Perfil(BaseModel):
     idPerfil: int
@@ -171,6 +173,12 @@ class DfHeatMapArea(BaseModel):
     year: int | None = None
     svgPath: str | None = None
     source: str
+    dataStatus: DataStatus | None = None
+    severity: SeverityLevel | None = None
+    classificationLabel: str | None = None
+    trendDirection: TrendDirection | None = None
+    explanation: str | None = None
+    sourceReliability: ReliabilityLevel | None = None
 
 
 class DfHeatMapData(BaseModel):
@@ -180,6 +188,8 @@ class DfHeatMapData(BaseModel):
     sourceLabel: str
     geometryStatus: str
     notes: list[str]
+    dataStatus: DataStatus | None = None
+    sourceReliability: ReliabilityLevel | None = None
 
 
 class EducensoDashboardResponse(BaseModel):

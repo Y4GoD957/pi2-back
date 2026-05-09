@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from httpx import AsyncClient, HTTPStatusError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ApiError
@@ -23,6 +22,7 @@ from app.schemas.educenso import (
     ReportListItem,
 )
 from app.schemas.ibge import AdministrativeRegion
+from app.services.educenso_public_data import EducensoPublicDataService
 from app.utils.analytics import (
     MODELING_NOTICE,
     build_analytical_table_rows,
@@ -56,6 +56,9 @@ class EducensoService:
 
     async def fetch_dashboard(self, filters: EducensoAnalysisFilters) -> EducensoDashboardResponse:
         records = await self._fetch_analysis_records()
+        if not records:
+            public_data_service = EducensoPublicDataService()
+            return await public_data_service.fetch_dashboard_legacy(filters)
         df_records = [record for record in records if record.localidade.uf == "DF"]
         normalized_filters = normalize_filters(filters, forced_uf="DF")
         filtered_records = self._apply_filters(df_records, normalized_filters)
@@ -95,29 +98,17 @@ class EducensoService:
         )
 
     async def fetch_df_heatmap(self, filters: EducensoAnalysisFilters) -> DfHeatMapData:
+        records = await self._fetch_analysis_records()
+        if not records:
+            public_data_service = EducensoPublicDataService()
+            return await public_data_service.fetch_heatmap_legacy(filters)
+
         dashboard = await self.fetch_dashboard(filters)
         return dashboard.heatMap
 
     async def fetch_df_regions(self) -> list[AdministrativeRegion]:
-        url = (
-            "https://servicodados.ibge.gov.br/api/v1/localidades/"
-            "estados/DF/distritos?orderBy=nome"
-        )
-        try:
-            async with AsyncClient(timeout=15.0) as client:
-                response = await client.get(url, headers={"Accept": "application/json"})
-                response.raise_for_status()
-        except HTTPStatusError as exc:
-            raise ApiError(
-                "Nao foi possivel consultar os distritos do DF no IBGE.",
-                502,
-            ) from exc
-
-        data = response.json()
-        return [
-            AdministrativeRegion(id=str(item["id"]), nome=item["nome"])
-            for item in data
-        ]
+        public_data_service = EducensoPublicDataService()
+        return await public_data_service.fetch_df_regions()
 
     async def fetch_user_reports(
         self,

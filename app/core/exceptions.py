@@ -1,3 +1,5 @@
+from collections.abc import Mapping, Sequence
+
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -9,6 +11,23 @@ class ApiError(Exception):
         self.message = message
         self.status_code = status_code
         super().__init__(message)
+
+
+def _make_json_safe(value):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+
+    if isinstance(value, Mapping):
+        return {str(key): _make_json_safe(item) for key, item in value.items()}
+
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return [_make_json_safe(item) for item in value]
+
+    return str(value)
+
+
+def _serialize_validation_errors(exc: RequestValidationError) -> list[dict[str, object]]:
+    return [_make_json_safe(error) for error in exc.errors()]
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -23,7 +42,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def handle_validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={"detail": exc.errors()},
+            content={"detail": _serialize_validation_errors(exc)},
         )
 
     @app.exception_handler(SQLAlchemyError)
