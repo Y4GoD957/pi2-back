@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -20,6 +20,11 @@ class SourceMetadata(BaseModel):
     confiabilidade: ReliabilityLevel = "desconhecida"
     granularidade: str | None = None
     aviso_granularidade: str | None = None
+    formato: str | None = None
+    status_dado: DataStatus | None = None
+    dataset: str | None = None
+    recurso: str | None = None
+    ultima_atualizacao: datetime | None = None
 
 
 class RecommendationHint(BaseModel):
@@ -178,5 +183,97 @@ class DfSummaryResponse(BaseModel):
     media: float | None = None
     minimo: float | None = None
     maximo: float | None = None
+    source_metadata: list[SourceMetadata] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+
+class PublicDatasetSource(BaseModel):
+    id: str
+    nome: str
+    descricao: str
+    status: Literal["integrado", "parcial", "avaliado", "rejeitado", "pendente"]
+    url: str
+    formatos: list[str] = Field(default_factory=list)
+    granularidade: str | None = None
+    ultimo_sucesso_em: datetime | None = None
+    mensagens: list[str] = Field(default_factory=list)
+
+
+class DfSourcesCatalogResponse(BaseModel):
+    fontes: list[PublicDatasetSource]
+    gerado_em: datetime
+    avisos: list[str] = Field(default_factory=list)
+
+
+class SchoolRecord(BaseModel):
+    id: str
+    name: str
+    network_type: str | None = None
+    education_stage: str | None = None
+    administrative_region: str | None = None
+    address: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    source: str
+    source_metadata: SourceMetadata
+    warnings: list[str] = Field(default_factory=list)
+    modality: str | None = None
+    infrastructure: dict[str, str | int | float | bool | None] | None = None
+    vacancies: int | None = None
+    enrollments: int | None = None
+    inep_school_code: str | None = None
+    attributes: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
+
+
+class SchoolListResponse(BaseModel):
+    total: int
+    returned: int
+    limit: int | None = None
+    schools: list[SchoolRecord]
+    warnings: list[str] = Field(default_factory=list)
+    source_metadata: list[SourceMetadata] = Field(default_factory=list)
+
+
+class SchoolCoverageRecord(BaseModel):
+    school_id: str
+    school_name: str
+    center_latitude: float
+    center_longitude: float
+    radius_meters: int = 1000
+    coverage_geometry: dict[str, Any] | None = None
+    source: str
+    source_metadata: SourceMetadata
+    warnings: list[str] = Field(default_factory=list)
+
+
+class SchoolCoverageResponse(BaseModel):
+    total: int
+    returned: int
+    limit: int | None = None
+    coverage: list[SchoolCoverageRecord]
+    warnings: list[str] = Field(default_factory=list)
+    source_metadata: list[SourceMetadata] = Field(default_factory=list)
+
+
+class AdministrativeRegionsResponse(BaseModel):
+    total: int
+    geojson: dict[str, Any]
+    source_metadata: SourceMetadata
+    warnings: list[str] = Field(default_factory=list)
+
+
+class AdministrativeRegionIndicator(BaseModel):
+    administrative_region: str
+    school_count: int
+    schools_with_official_coordinates: int
+    enrollment_total: int | None = None
+    available_stages: list[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+
+class AdministrativeRegionIndicatorsResponse(BaseModel):
+    total_regions: int
+    indicators: list[AdministrativeRegionIndicator]
     source_metadata: list[SourceMetadata] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
