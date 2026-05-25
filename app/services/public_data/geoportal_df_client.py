@@ -21,6 +21,10 @@ class GeoportalDfClient:
         self._client = client
 
     async def fetch_administrative_regions_geojson(self) -> dict[str, Any]:
+        cached = _geoportal_regions_cache.get("geojson")
+        if isinstance(cached, dict):
+            return cached
+
         layer_url = f"{self.base_url}/Territorio/Regioes_Administrativas_DF_2025/FeatureServer/0/query"
         params = {
             "where": "1=1",
@@ -61,10 +65,12 @@ class GeoportalDfClient:
                 }
             )
 
-        return {
+        normalized = {
             "type": "FeatureCollection",
             "features": normalized_features,
         }
+        _geoportal_regions_cache["geojson"] = normalized
+        return normalized
 
     def build_source_metadata(self) -> SourceMetadata:
         endpoint = f"{self.base_url}/Territorio/Regioes_Administrativas_DF_2025/FeatureServer/0/query"
@@ -102,3 +108,6 @@ class GeoportalDfClient:
         finally:
             if should_close:
                 await client.aclose()
+
+
+_geoportal_regions_cache: dict[str, Any] = {}

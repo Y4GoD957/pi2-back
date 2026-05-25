@@ -861,15 +861,9 @@ class EducensoPublicDataService:
             (
                 offer_package,
                 early_package,
-                enrollments_package,
-                infrastructure_package,
-                catalog_package,
             ) = await asyncio.gather(
                 self._fetch_seedf_package(seedf_client, SCHOOL_OFFER_DATASET, warnings=warnings),
                 self._fetch_seedf_package(seedf_client, EARLY_CHILDHOOD_DATASET, warnings=warnings),
-                self._fetch_seedf_package(seedf_client, ENROLLMENTS_DATASET, warnings=warnings),
-                self._fetch_seedf_package(seedf_client, INFRASTRUCTURE_DATASET, warnings=warnings),
-                self._fetch_seedf_package(seedf_client, SCHOOL_CATALOG_DATASET, warnings=warnings),
             )
 
             location_specs = [
@@ -904,42 +898,6 @@ class EducensoPublicDataService:
                     existing.warnings = sorted(set([*existing.warnings, *school.warnings]))
 
             schools = list(schools_by_id.values())
-            school_index = self._build_school_index(schools)
-
-            catalog_result, enrollments_result, infrastructure_result = await asyncio.gather(
-                self._load_school_csv_resource(
-                    seedf_client,
-                    package_data=catalog_package,
-                    format_name="csv",
-                    contains="Relatorio_Escolas_2024",
-                    missing_warning="Catalogo anual de escolas da SEEDF nao foi localizado em CSV para enriquecimento complementar.",
-                ),
-                self._load_school_csv_resource(
-                    seedf_client,
-                    package_data=enrollments_package,
-                    format_name="csv",
-                    contains="Relatorio_Matriculas_2024",
-                    missing_warning="Base anual de matriculas da SEEDF nao foi localizada em CSV para o ano mais recente esperado.",
-                ),
-                self._load_school_csv_resource(
-                    seedf_client,
-                    package_data=infrastructure_package,
-                    format_name="csv",
-                    contains="2024_",
-                    missing_warning="Base anual de infraestrutura tecnologica da SEEDF nao foi localizada em CSV para 2024.",
-                ),
-            )
-
-        for result in [catalog_result, enrollments_result, infrastructure_result]:
-            metadata.extend(result["metadata"])
-            warnings.extend(result["warnings"])
-
-        if catalog_result["records"]:
-            self._merge_school_catalog(schools, school_index, catalog_result["records"])
-        if enrollments_result["records"]:
-            self._merge_enrollments(schools, school_index, enrollments_result["records"])
-        if infrastructure_result["records"]:
-            self._merge_infrastructure(schools, school_index, infrastructure_result["records"])
 
         try:
             regions_geojson = await self.geoportal_client.fetch_administrative_regions_geojson()
