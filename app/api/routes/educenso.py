@@ -15,11 +15,16 @@ from app.schemas.educenso import (
 )
 from app.schemas.ibge import AdministrativeRegion, DfMetadataResponse
 from app.schemas.public_data import (
+    AdministrativeRegionIndicatorsResponse,
+    AdministrativeRegionsResponse,
     DataSourcesResponse,
     DfChartsResponse,
     DfHeatmapResponse,
     DfIndicatorsResponse,
+    DfSourcesCatalogResponse,
     DfSummaryResponse,
+    SchoolCoverageResponse,
+    SchoolListResponse,
 )
 from app.services.educenso import EducensoService
 from app.services.educenso_public_data import EducensoPublicDataService
@@ -115,6 +120,12 @@ async def get_data_sources() -> DataSourcesResponse:
     return await service.fetch_data_sources()
 
 
+@router.get("/df/sources", response_model=DfSourcesCatalogResponse)
+async def get_df_sources() -> DfSourcesCatalogResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_sources()
+
+
 @router.get("/df/metadata", response_model=DfMetadataResponse)
 async def get_df_metadata() -> DfMetadataResponse:
     service = EducensoPublicDataService()
@@ -175,3 +186,60 @@ async def get_df_summary(
         year=year,
         source=source,
     )
+
+
+@router.get("/df/schools", response_model=SchoolListResponse)
+async def get_df_schools(
+    limit: int | None = Query(default=None, ge=1, le=5000),
+    administrative_region: str | None = Query(default=None),
+    education_stage: str | None = Query(default=None),
+) -> SchoolListResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_schools(
+        limit=limit,
+        administrative_region=administrative_region,
+        education_stage=education_stage,
+    )
+
+
+@router.get("/df/school-map", response_model=SchoolListResponse)
+async def get_df_school_map(
+    limit: int | None = Query(default=None, ge=1, le=5000),
+    administrative_region: str | None = Query(default=None),
+    education_stage: str | None = Query(default=None),
+) -> SchoolListResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_school_map(
+        limit=limit,
+        administrative_region=administrative_region,
+        education_stage=education_stage,
+    )
+
+
+@router.get("/df/school-coverage", response_model=SchoolCoverageResponse)
+async def get_df_school_coverage(
+    limit: int | None = Query(default=None, ge=1, le=5000),
+    administrative_region: str | None = Query(default=None),
+    education_stage: str | None = Query(default=None),
+) -> SchoolCoverageResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_school_coverage(
+        limit=limit,
+        administrative_region=administrative_region,
+        education_stage=education_stage,
+    )
+
+
+@router.get("/df/administrative-regions", response_model=AdministrativeRegionsResponse)
+async def get_df_administrative_regions_geojson() -> AdministrativeRegionsResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_administrative_regions()
+
+
+@router.get(
+    "/df/administrative-region-indicators",
+    response_model=AdministrativeRegionIndicatorsResponse,
+)
+async def get_df_administrative_region_indicators() -> AdministrativeRegionIndicatorsResponse:
+    service = EducensoPublicDataService()
+    return await service.fetch_df_administrative_region_indicators()

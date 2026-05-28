@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     sidra_base_url: str = "https://servicodados.ibge.gov.br/api/v3"
     ibge_localidades_base_url: str = "https://servicodados.ibge.gov.br/api/v1/localidades"
     ibge_malhas_base_url: str = "https://servicodados.ibge.gov.br/api/v2/malhas"
+    seedf_base_url: str = "https://data.se.df.gov.br"
+    geoportal_df_arcgis_base_url: str = "https://onda.ibram.df.gov.br/server/rest/services"
     inep_base_url: str = "https://www.gov.br/inep/pt-br"
     public_data_timeout_seconds: float = 20.0
     local_dev_cors_origins: list[str] = Field(
